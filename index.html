@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenQoE – Open Source Video QoE Analytics</title>
+  <meta name="description" content="Prometheus-native video player analytics SDK. Track Quality of Experience metrics directly in your existing observability stack. No custom backend required." />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  
+  <!-- Custom Styles -->
+  <style>
+    * {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    
+    /* Gradient animations */
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    .gradient-animate {
+      background-size: 200% 200%;
+      animation: gradient-shift 15s ease infinite;
+    }
+    
+    /* Glow effects */
+    .glow {
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
+    }
+    
+    .text-glow {
+      text-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
+    }
+    
+    /* Glass morphism */
+    .glass {
+      backdrop-filter: blur(10px);
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Floating animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    .float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    /* Fade in animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    /* Code block styling */
+    .code-block {
+      background: #0f172a;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .code-block::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+      animation: code-shimmer 3s infinite;
+    }
+    
+    @keyframes code-shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    /* Metric pill hover effect */
+    .metric-pill {
+      transition: all 0.3s ease;
+      cursor: default;
+    }
+    
+    .metric-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.1);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+    
+    /* Button hover effects */
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn-primary:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    /* Grid pattern background */
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    
+    /* Pulse animation for live indicator */
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    
+    .pulse {
+      animation: pulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 overflow-x-hidden">
+  <!-- Background Effects -->
+  <div class="fixed inset-0 grid-bg"></div>
+  <div class="fixed inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 gradient-animate"></div>
+  
+  <!-- Navigation -->
+  <nav class="fixed top-0 w-full z-50 glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <span class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">OpenQoE</span>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#features" class="text-slate-300 hover:text-white transition-colors">Features</a>
+          <a href="#metrics" class="text-slate-300 hover:text-white transition-colors">Metrics</a>
+          <a href="#architecture" class="text-slate-300 hover:text-white transition-colors">Architecture</a>
+          <a href="#get-started" class="text-slate-300 hover:text-white transition-colors">Get Started</a>
+          <a href="https://github.com/openqoe" target="_blank" class="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Hero Section -->
+  <section class="relative min-h-screen flex items-center justify-center px-4 pt-20">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full filter blur-3xl opacity-20 float"></div>
+      <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500 rounded-full filter blur-3xl opacity-20 float" style="animation-delay: 3s;"></div>
+    </div>
+    
+    <div class="relative z-10 max-w-5xl mx-auto text-center">
+      <div class="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full mb-8 fade-in">
+        <div class="w-2 h-2 bg-green-400 rounded-full pulse"></div>
+        <span class="text-sm text-slate-300">Open Source • Apache 2.0 Licensed</span>
+      </div>
+      
+      <h1 class="text-5xl md:text-7xl font-black mb-6 fade-in" style="animation-delay: 0.1s;">
+        <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Prometheus-Native</span>
+        <br />
+        <span class="text-white">Video Analytics</span>
+      </h1>
+      
+      <p class="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed fade-in" style="animation-delay: 0.2s;">
+        Track Quality of Experience metrics from your video players directly in your existing Prometheus/Grafana stack. No custom backend, no vendor lock-in.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in" style="animation-delay: 0.3s;">
+        <a href="#get-started" class="btn-primary px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25">
+          Get Started →
+        </a>
+        <a href="https://github.com/openqoe/openqoe-core" target="_blank" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl border border-slate-700 transition-all duration-300 transform hover:scale-105">
+          View on GitHub
+        </a>
+      </div>
+      
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 fade-in" style="animation-delay: 0.4s;">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">6+</div>
+          <div class="text-sm text-slate-400">Player Adapters</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">50+</div>
+          <div class="text-sm text-slate-400">QoE Metrics</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white"><1%</div>
+          <div class="text-sm text-slate-400">CPU Overhead</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">0</div>
+          <div class="text-sm text-slate-400">Backend Required</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Features Section -->
+  <section id="features" class="relative py-24 px-4">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">
+          <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Why OpenQoE?</span>
+        </h2>
+        <p class="text-xl text-slate-400">Built for modern observability stacks</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300 glow">
+          <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Zero Backend</h3>
+          <p class="text-slate-400">Send metrics directly to Prometheus via OTLP or Pushgateway. Use your existing observability infrastructure.</p>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+          <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Privacy First</h3>
+          <p class="text-slate-400">Hash viewer IDs, no PII collection. Compliant by design with GDPR and privacy regulations.</p>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+          <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-cyan-600 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Pure Metrics</h3>
+          <p class="text-slate-400">No logs, no traces. Just lean Prometheus metrics with intelligent batching every 10 seconds.</p>
+        </div>
+        
+        <!-- Feature 4 -->
+        <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+          <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Multi-Platform</h3>
+          <p class="text-slate-400">Adapters for Video.js, HLS.js, dash.js, native HTML5, ExoPlayer (Android), and AVPlayer (iOS/tvOS).</p>
+        </div>
+        
+        <!-- Feature 5 -->
+        <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+          <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Offline Safe</h3>
+          <p class="text-slate-400">Queue metrics when offline, flush when connection restored. Never lose valuable analytics data.</p>
+        </div>
+        
+        <!-- Feature 6 -->
+        <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+          <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Apache 2.0</h3>
+          <p class="text-slate-400">Commercial friendly license. Fork, extend, and embed in your stack with confidence.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Metrics Section -->
+  <section id="metrics" class="relative py-24 px-4 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5"></div>
+    
+    <div class="relative max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">
+          <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Industry-Standard Metrics</span>
+        </h2>
+        <p class="text-xl text-slate-400">Complete QoE observability out of the box</p>
+      </div>
+      
+      <!-- Metric Categories -->
+      <div class="flex flex-wrap justify-center gap-3 mb-12">
+        <div class="metric-pill px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm font-medium">
+          Engagement
+        </div>
+        <div class="metric-pill px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm font-medium">
+          Playback Success
+        </div>
+        <div class="metric-pill px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm font-medium">
+          Startup Time
+        </div>
+        <div class="metric-pill px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm font-medium">
+          Smoothness
+        </div>
+        <div class="metric-pill px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm font-medium">
+          Video Quality
+        </div>
+        <div class="metric-pill px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm font-medium">
+          Advertising
+        </div>
+        <div class="metric-pill px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm font-medium">
+          Real-Time
+        </div>
+      </div>
+      
+      <!-- Metric Examples -->
+      <div class="grid lg:grid-cols-2 gap-8">
+        <div class="code-block rounded-xl p-6">
+          <div class="text-xs text-slate-400 mb-2"># ENGAGEMENT METRICS</div>
+          <code class="text-sm text-green-400">
+            video_views_total{player="hlsjs"} 15234<br/>
+            video_unique_viewers_total 8923<br/>
+            video_playing_time_seconds_total 2340567<br/>
+            video_concurrent_viewers 342
+          </code>
+        </div>
+        
+        <div class="code-block rounded-xl p-6">
+          <div class="text-xs text-slate-400 mb-2"># STARTUP TIME METRICS</div>
+          <code class="text-sm text-green-400">
+            video_startup_time_seconds{p95} 2.3<br/>
+            video_seek_latency_seconds{p95} 0.8<br/>
+            video_page_load_time_seconds{p95} 1.5<br/>
+            video_startup_time_score 0.89
+          </code>
+        </div>
+        
+        <div class="code-block rounded-xl p-6">
+          <div class="text-xs text-slate-400 mb-2"># SMOOTHNESS METRICS</div>
+          <code class="text-sm text-green-400">
+            video_rebuffer_percentage 1.2<br/>
+            video_rebuffer_frequency 0.8<br/>
+            video_rebuffer_duration_seconds{p95} 2.1<br/>
+            video_smoothness_score 0.92
+          </code>
+        </div>
+        
+        <div class="code-block rounded-xl p-6">
+          <div class="text-xs text-slate-400 mb-2"># QUALITY METRICS</div>
+          <code class="text-sm text-green-400">
+            video_weighted_average_bitrate_bps 2500000<br/>
+            video_upscale_percentage 5.2<br/>
+            video_downscale_percentage 12.3<br/>
+            video_quality_score 0.88
+          </code>
+        </div>
+      </div>
+      
+      <div class="mt-12 text-center">
+        <p class="text-slate-400 mb-4">Track 50+ metrics across 7 categories with 40+ dimension labels</p>
+        <a href="https://github.com/openqoe/openqoe-core/docs/metrics" target="_blank" class="inline-flex items-center space-x-2 text-indigo-400 hover:text-indigo-300 transition-colors">
+          <span>View Complete Metrics Reference</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Architecture Section -->
+  <section id="architecture" class="relative py-24 px-4">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">
+          <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Simple Architecture</span>
+        </h2>
+        <p class="text-xl text-slate-400">Fits seamlessly into your existing stack</p>
+      </div>
+      
+      <div class="glass rounded-2xl p-8 overflow-x-auto">
+        <pre class="text-xs md:text-sm text-slate-300">
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Video.js      │     │   HLS.js        │     │   ExoPlayer     │
+│   HTML5         │     │   dash.js       │     │   AVPlayer      │
+└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
+         │                       │                         │
+         └───────────────────────┴─────────────────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │   <span class="text-indigo-400 font-bold">OpenQoE Core</span>          │
+                    │  • Event Collection     │
+                    │  • Metric Calculation   │
+                    │  • Batching            │
+                    └────────────┬────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │  OpenTelemetry Metrics  │
+                    │  • OTLP Protocol        │
+                    │  • Prometheus Format    │
+                    └────────────┬────────────┘
+                                 │
+                ┌────────────────┴────────────────┐
+                │                                 │
+     ┌──────────▼──────────┐          ┌──────────▼──────────┐
+     │  <span class="text-purple-400">OTel Collector</span>     │          │  <span class="text-purple-400">Prometheus</span>         │
+     │  (Recommended)      │          │  Pushgateway        │
+     └──────────┬──────────┘          └──────────┬──────────┘
+                │                                 │
+                └─────────────┬───────────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │    <span class="text-cyan-400">Prometheus</span>     │
+                    │  (Time Series DB) │
+                    └─────────┬─────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │     <span class="text-green-400">Grafana</span>       │
+                    │  (Visualization)  │
+                    └───────────────────┘
+        </pre>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-8 mt-12">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-indigo-400 mb-2">1. Collect</div>
+          <p class="text-slate-400">Player adapters collect events and calculate metrics in real-time</p>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-purple-400 mb-2">2. Export</div>
+          <p class="text-slate-400">Metrics batched and sent via OTLP or Pushgateway every 10s</p>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-400 mb-2">3. Visualize</div>
+          <p class="text-slate-400">Query in Prometheus, visualize in Grafana with included dashboards</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Get Started Section -->
+  <section id="get-started" class="relative py-24 px-4">
+    <div class="absolute inset-0 bg-gradient-to-t from-indigo-500/10 to-transparent"></div>
+    
+    <div class="relative max-w-4xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">
+          <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Get Started in Minutes</span>
+        </h2>
+        <p class="text-xl text-slate-400">Drop-in integration with your existing players</p>
+      </div>
+      
+      <!-- Installation Steps -->
+      <div class="space-y-8">
+        <div class="flex items-start space-x-4">
+          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+            1
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2">Install the SDK</h3>
+            <div class="code-block rounded-lg p-4">
+              <code class="text-sm text-green-400">npm install @openqoe/core @openqoe/web</code>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-start space-x-4">
+          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+            2
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2">Initialize with Your Config</h3>
+            <div class="code-block rounded-lg p-4">
+              <code class="text-sm text-green-400">
+const openQoE = new OpenQoE({<br/>
+&nbsp;&nbsp;viewerId: 'user-123',<br/>
+&nbsp;&nbsp;export: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;method: 'otlp',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;endpoint: 'http://localhost:4317'<br/>
+&nbsp;&nbsp;}<br/>
+});
+              </code>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-start space-x-4">
+          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+            3
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2">Attach to Your Player</h3>
+            <div class="code-block rounded-lg p-4">
+              <code class="text-sm text-green-400">
+// HLS.js example<br/>
+const hls = new Hls();<br/>
+openQoE.attachToHLSjs(hls, video, {<br/>
+&nbsp;&nbsp;videoId: 'movie-456',<br/>
+&nbsp;&nbsp;videoTitle: 'Example Movie'<br/>
+});
+              </code>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-start space-x-4">
+          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+            4
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2">Import Grafana Dashboards</h3>
+            <p class="text-slate-400">Use our pre-built dashboards or create your own with 50+ available metrics</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-12 text-center">
+        <a href="https://github.com/openqoe/openqoe-core#readme" target="_blank" class="inline-flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25">
+          <span>View Documentation</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- CTA Section -->
+  <section class="relative py-24 px-4 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 gradient-animate"></div>
+    
+    <div class="relative max-w-4xl mx-auto text-center">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">
+        <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Join the Movement</span>
+      </h2>
+      <p class="text-xl text-slate-300 mb-12 max-w-2xl mx-auto">
+        OpenQoE is just getting started. Star the repo, contribute adapters, and help build the future of open video analytics.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="https://github.com/openqoe" target="_blank" class="inline-flex items-center space-x-2 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl border border-slate-700 transition-all duration-300 transform hover:scale-105">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          <span>Star on GitHub</span>
+        </a>
+        <a href="mailto:dev@openqoe.dev" class="inline-flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          <span>Contact Maintainers</span>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer class="relative py-12 px-4 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row items-center justify-between">
+        <div class="flex items-center space-x-2 mb-4 md:mb-0">
+          <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <span class="text-lg font-bold">OpenQoE</span>
+        </div>
+        
+        <div class="flex items-center space-x-6 text-sm text-slate-400">
+          <span>© 2024 OpenQoE</span>
+          <span>•</span>
+          <span>Apache 2.0 License</span>
+          <span>•</span>
+          <a href="https://openqoe.dev" class="hover:text-white transition-colors">openqoe.dev</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Smooth scroll behavior -->
+  <script>
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
